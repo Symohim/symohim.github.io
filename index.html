@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Be My Valentine</title>
+  <style>
+    :root {
+      --bg1: #120018;
+      --bg2: #38002f;
+      --gold: #ffd166;
+      --pink: #ff6fb5;
+      --rose: #ff2d75;
+      --cream: #fff4e6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: "Poppins", "Segoe UI", sans-serif;
+      color: var(--cream);
+      background: radial-gradient(circle at 30% 20%, #4a0056 0%, var(--bg1) 40%, #000 100%);
+    }
+
+    .fireworks {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.75;
+    }
+
+    .balloon-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .balloon {
+      position: absolute;
+      width: 42px;
+      height: 56px;
+      border-radius: 52% 48% 48% 52%;
+      filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.3));
+      animation: drift linear infinite;
+    }
+
+    .balloon::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 56px;
+      width: 1px;
+      height: 95px;
+      background: rgba(255, 255, 255, 0.45);
+    }
+
+    @keyframes drift {
+      from { transform: translateY(105vh) translateX(0) rotate(0deg); }
+      to { transform: translateY(-120vh) translateX(50px) rotate(10deg); }
+    }
+
+    .app {
+      position: relative;
+      z-index: 2;
+      height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1.2rem;
+    }
+
+    .deck {
+      position: relative;
+      width: min(920px, 96vw);
+      height: min(600px, 90vh);
+      border-radius: 26px;
+      backdrop-filter: blur(12px);
+      background: linear-gradient(135deg, rgba(255, 111, 181, 0.17), rgba(18, 0, 24, 0.75));
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: clamp(1rem, 3vw, 2rem);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      opacity: 0;
+      transform: translateX(45px) scale(0.98);
+      pointer-events: none;
+      transition: all 450ms ease;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .panel {
+      width: min(640px, 100%);
+    }
+
+    h1, h2 { margin: 0 0 0.6rem; line-height: 1.15; }
+    h1 { font-size: clamp(1.9rem, 4.4vw, 3.1rem); }
+    h2 { font-size: clamp(1.6rem, 3.6vw, 2.4rem); }
+
+    p {
+      margin: 0.6rem 0;
+      color: #ffe7f4;
+      font-size: clamp(0.98rem, 2vw, 1.1rem);
+    }
+
+    .question {
+      margin: 1.2rem 0 1rem;
+      font-weight: 600;
+      color: var(--gold);
+    }
+
+    .choices {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 0.9rem;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 0.72rem 1rem;
+      font: inherit;
+      cursor: pointer;
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .choice-btn {
+      color: #fff;
+      background: linear-gradient(135deg, #ff2d75, #ff6fb5);
+      box-shadow: 0 8px 16px rgba(255, 45, 117, 0.3);
+    }
+
+    .choice-btn:hover,
+    .next-btn:hover,
+    .yes-btn:hover {
+      transform: translateY(-2px) scale(1.01);
+    }
+
+    .next-btn,
+    .yes-btn,
+    .no-btn {
+      margin-top: 1rem;
+      color: #2a001f;
+      background: linear-gradient(135deg, #fff3b0, #ffd166);
+      box-shadow: 0 8px 18px rgba(255, 209, 102, 0.3);
+    }
+
+    .letter {
+      text-align: left;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 228, 235, 0.9));
+      color: #3e1035;
+      border-radius: 16px;
+      padding: clamp(1rem, 2.8vw, 1.5rem);
+      box-shadow: inset 0 0 0 1px rgba(255, 45, 117, 0.2), 0 14px 30px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+
+    .letter::before {
+      content: "❤";
+      position: absolute;
+      top: -12px;
+      right: 16px;
+      color: var(--rose);
+      font-size: 1.4rem;
+    }
+
+    .letter h3 {
+      margin: 0 0 0.6rem;
+      font-family: "Georgia", serif;
+      color: #9b004e;
+    }
+
+    .letter p { color: #541838; }
+
+    .result {
+      min-height: 1.4rem;
+      font-weight: 600;
+      color: #ffe6a6;
+      margin-top: 0.4rem;
+    }
+
+    .proposal {
+      padding: 1.3rem;
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgba(255, 209, 102, 0.1), rgba(255, 111, 181, 0.15));
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .answer-row {
+      display: flex;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .no-btn {
+      background: rgba(255,255,255,0.85);
+    }
+
+    .spark {
+      position: absolute;
+      font-size: 1.25rem;
+      animation: pop 900ms ease forwards;
+    }
+
+    @keyframes pop {
+      from { opacity: 1; transform: translateY(0) scale(0.7); }
+      to { opacity: 0; transform: translateY(-55px) scale(1.25); }
+    }
+
+    .footer-note {
+      font-size: 0.82rem;
+      opacity: 0.8;
+      margin-top: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <canvas class="fireworks" id="fireworks"></canvas>
+  <div class="balloon-layer" id="balloons"></div>
+
+  <main class="app">
+    <section class="deck" id="deck">
+      <article class="slide active" data-slide="1">
+        <div class="panel">
+          <h1>A Tiny Prelude of Love</h1>
+          <p>Before we begin... answer this little multiple-choice riddle 💫</p>
+          <p class="question">Which color should tonight's romance glow in?</p>
+          <div class="choices" id="choices">
+            <button class="choice-btn" data-value="Rose Gold">A) Rose Gold Dream</button>
+            <button class="choice-btn" data-value="Midnight Violet">B) Midnight Violet Glow</button>
+            <button class="choice-btn" data-value="Scarlet Spark">C) Scarlet Spark</button>
+          </div>
+          <p class="result" id="result"></p>
+          <button class="next-btn" id="to-letter" hidden>Open the letter ✉️</button>
+        </div>
+      </article>
+
+      <article class="slide" data-slide="2">
+        <div class="panel letter">
+          <h3>My Dearest,</h3>
+          <p>
+            In a world full of noise, your laugh is the melody that finds me.
+            Your kindness paints gentle light on my ordinary days, and your presence
+            makes every small moment feel like art.
+          </p>
+          <p>
+            If love is a gallery, you are the masterpiece I could admire forever—
+            vivid, rare, and endlessly inspiring.
+          </p>
+          <p style="margin-top:0.9rem;"><strong>With all my heart,</strong><br/>Someone who adores you.</p>
+          <button class="next-btn" id="to-proposal">One last thing... 💖</button>
+        </div>
+      </article>
+
+      <article class="slide" data-slide="3">
+        <div class="panel proposal" id="proposal-box">
+          <h2>Will you be my Valentine?</h2>
+          <p>Let's make memories dipped in starlight, laughter, and love.</p>
+          <div class="answer-row">
+            <button class="yes-btn" id="yes">Yes, absolutely! 💘</button>
+            <button class="no-btn" id="no">Let me think 🙈</button>
+          </div>
+          <p class="result" id="final-result"></p>
+          <p class="footer-note">Made with love, fireworks, and floating dreams.</p>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const result = document.getElementById('result');
+    const toLetter = document.getElementById('to-letter');
+    const toProposal = document.getElementById('to-proposal');
+    const finalResult = document.getElementById('final-result');
+
+    function showSlide(number) {
+      slides.forEach((s, i) => s.classList.toggle('active', i === number - 1));
+    }
+
+    document.querySelectorAll('.choice-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const value = btn.dataset.value;
+        result.textContent = `Perfect choice: ${value}. Your heart has exquisite taste ✨`;
+        toLetter.hidden = false;
+      });
+    });
+
+    toLetter.addEventListener('click', () => showSlide(2));
+    toProposal.addEventListener('click', () => showSlide(3));
+
+    document.getElementById('yes').addEventListener('click', () => {
+      finalResult.textContent = 'You just made this the most beautiful Valentine ever! 💞';
+      burstHearts();
+    });
+
+    const noBtn = document.getElementById('no');
+    noBtn.addEventListener('mouseenter', () => {
+      const x = Math.random() * 65;
+      const y = Math.random() * 45;
+      noBtn.style.transform = `translate(${x - 30}px, ${y - 20}px)`;
+    });
+    noBtn.addEventListener('click', () => {
+      finalResult.textContent = 'I can wait... but my heart already chose you. 💗';
+    });
+
+    function burstHearts() {
+      const box = document.getElementById('proposal-box');
+      for (let i = 0; i < 14; i++) {
+        const spark = document.createElement('span');
+        spark.className = 'spark';
+        spark.textContent = ['❤', '💖', '✨'][Math.floor(Math.random() * 3)];
+        spark.style.left = `${10 + Math.random() * 80}%`;
+        spark.style.bottom = `${20 + Math.random() * 28}%`;
+        box.appendChild(spark);
+        setTimeout(() => spark.remove(), 900);
+      }
+    }
+
+    function createBalloons() {
+      const layer = document.getElementById('balloons');
+      const palette = ['#ff6fb5', '#ffd166', '#ff2d75', '#d291ff', '#8be9fd'];
+      for (let i = 0; i < 18; i++) {
+        const b = document.createElement('div');
+        b.className = 'balloon';
+        b.style.left = `${Math.random() * 100}%`;
+        b.style.animationDuration = `${10 + Math.random() * 16}s`;
+        b.style.animationDelay = `${-Math.random() * 18}s`;
+        b.style.background = palette[i % palette.length];
+        b.style.opacity = `${0.5 + Math.random() * 0.35}`;
+        layer.appendChild(b);
+      }
+    }
+
+    function runFireworks() {
+      const canvas = document.getElementById('fireworks');
+      const ctx = canvas.getContext('2d');
+      const bursts = [];
+
+      function resize() {
+        canvas.width = innerWidth;
+        canvas.height = innerHeight;
+      }
+
+      addEventListener('resize', resize);
+      resize();
+
+      function spawnBurst() {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height * 0.65;
+        const particles = [];
+        const colors = ['#ffd166', '#ff6fb5', '#a0c4ff', '#ff99c8'];
+        for (let i = 0; i < 48; i++) {
+          const a = (Math.PI * 2 * i) / 48;
+          const speed = 1 + Math.random() * 3;
+          particles.push({
+            x, y,
+            vx: Math.cos(a) * speed,
+            vy: Math.sin(a) * speed,
+            life: 70 + Math.random() * 40,
+            color: colors[i % colors.length]
+          });
+        }
+        bursts.push(particles);
+      }
+
+      setInterval(spawnBurst, 1100);
+
+      function tick() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = bursts.length - 1; i >= 0; i--) {
+          const particles = bursts[i];
+          for (let j = particles.length - 1; j >= 0; j--) {
+            const p = particles[j];
+            p.life -= 1;
+            p.vy += 0.012;
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.life <= 0) {
+              particles.splice(j, 1);
+              continue;
+            }
+            ctx.globalAlpha = Math.max(0.2, p.life / 110);
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 2.1, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          if (!particles.length) bursts.splice(i, 1);
+        }
+
+        requestAnimationFrame(tick);
+      }
+
+      tick();
+    }
+
+    createBalloons();
+    runFireworks();
+  </script>
+</body>
+</html>
