@@ -181,4 +181,356 @@
       content: '';
       position: absolute;
       top: 0; left: 0; right: 0; height: 6px;
-      background: repeating-linear-gradient(45deg, var(--rose), var(--rose) 10px, transparent 10px, transparent 20px, #69a3ff 20px, #69a3ff 30px,
+      background: repeating-linear-gradient(45deg, var(--rose), var(--rose) 10px, transparent 10px, transparent 20px, #69a3ff 20px, #69a3ff 30px, transparent 30px, transparent 40px);
+      border-radius: 12px 12px 0 0;
+    }
+
+    .typewriter-text { white-space: pre-wrap; text-align: left; font-family: 'Georgia', serif; font-size: 1.15rem; min-height: 150px; }
+    .cursor { display: inline-block; width: 2px; height: 1.2em; background: #3e1035; animation: blink 1s infinite; vertical-align: middle; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* Proposal Slide */
+    .proposal-actions { margin-top: 2rem; min-height: 200px; position: relative; width: 100%; }
+    
+    .no-btn {
+      background: #fff;
+      color: var(--rose);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transition: 0.1s ease; /* Faster transition for the run-away effect */
+    }
+
+    /* Music Control */
+    .music-control {
+      position: fixed;
+      top: 20px; right: 20px;
+      z-index: 100;
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255,255,255,0.2);
+      width: 45px; height: 45px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.3s;
+    }
+    .music-control:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+    .music-bars { display: flex; gap: 3px; height: 15px; align-items: flex-end; }
+    .bar { width: 3px; background: var(--gold); animation: eq 1s ease-in-out infinite; }
+    .paused .bar { height: 3px !important; animation: none; }
+    @keyframes eq { 0%, 100% { height: 5px; } 50% { height: 15px; } }
+    
+    .bar:nth-child(1) { animation-delay: 0s; }
+    .bar:nth-child(2) { animation-delay: 0.2s; }
+    .bar:nth-child(3) { animation-delay: 0.4s; }
+
+    /* Hidden Utilities */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <audio id="bg-music" loop>
+    <source src="https://commondatastorage.googleapis.com/codeskulptor-demos/riceracer_assets/music/win.ogg" type="audio/ogg"> 
+    Your browser does not support audio.
+  </audio>
+
+  <div class="music-control paused" id="music-btn" title="Play Music">
+    <div class="music-bars">
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+  </div>
+
+  <canvas class="canvas-layer" id="fireworks"></canvas>
+  <canvas class="canvas-layer" id="confetti"></canvas>
+  <div class="balloon-layer" id="balloons"></div>
+
+  <main class="app">
+    <section class="deck">
+      
+      <article class="slide active" id="slide-1">
+        <h1>Hey beautiful... ✨</h1>
+        <p>Before we proceed, I need to know your vibe tonight.</p>
+        <p style="color:var(--gold); font-weight:600; margin-top:1rem;">Pick a color:</p>
+        
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:1rem;">
+          <button class="btn btn-primary" onclick="handleChoice('Rose Gold')">Rose Gold 🌹</button>
+          <button class="btn btn-primary" onclick="handleChoice('Moonlight')">Moonlight 🌙</button>
+          <button class="btn btn-primary" onclick="handleChoice('Stardust')">Stardust ✨</button>
+        </div>
+        
+        <p id="choice-result" style="min-height: 1.5em; margin-top: 1.5rem; font-style: italic; opacity: 0; transition: opacity 0.5s;"></p>
+        <button class="btn btn-gold hidden" id="next-1">Read my Letter ✉️</button>
+      </article>
+
+      <article class="slide" id="slide-2">
+        <div class="letter-container">
+          <div id="typewriter" class="typewriter-text"></div><span class="cursor"></span>
+        </div>
+        <button class="btn btn-gold" id="next-2" style="margin-top: 2rem; opacity: 0; pointer-events: none;">I have a question... 💖</button>
+      </article>
+
+      <article class="slide" id="slide-3">
+        <h2>Will you be my Valentine?</h2>
+        <p>There is no one else I'd rather annoy, laugh with, and make memories with.</p>
+        
+        <div class="proposal-actions">
+          <button class="btn btn-gold" id="yes-btn">YES! Absolutely! 💘</button>
+          <button class="btn no-btn" id="no-btn">No, thanks</button>
+        </div>
+        <p id="final-message" class="hidden" style="font-size: 1.4rem; color: var(--gold); margin-top: 1rem;">See? You really had no choice! 😘</p>
+      </article>
+
+    </section>
+  </main>
+
+  <script>
+    // --- Configuration & State ---
+    const letterText = `My Dearest,\n\nIn a world that is often too loud, your presence is my favorite quiet place. Your laugh is the melody I want to listen to on repeat.\n\nEvery day with you feels like my favorite song playing on the radio. I don't need grand gestures, just you, me, and a little bit of magic.`;
+    
+    // --- DOM Elements ---
+    const slides = [document.getElementById('slide-1'), document.getElementById('slide-2'), document.getElementById('slide-3')];
+    const musicBtn = document.getElementById('music-btn');
+    const audio = document.getElementById('bg-music');
+    const noBtn = document.getElementById('no-btn');
+    const yesBtn = document.getElementById('yes-btn');
+    const next1 = document.getElementById('next-1');
+    const next2 = document.getElementById('next-2');
+    
+    // --- Slide Logic ---
+    function goToSlide(index) {
+      slides.forEach(s => s.classList.remove('active'));
+      slides[index].classList.add('active');
+      
+      if (index === 1) startTypewriter();
+    }
+
+    // --- Interaction Logic ---
+    
+    // 1. Quiz Choice
+    window.handleChoice = (flavor) => {
+      const msgs = {
+        'Rose Gold': "Classic and elegant, just like you.",
+        'Moonlight': "Mysterious and dreamy... I love it.",
+        'Stardust': "Magical choice for a magical person."
+      };
+      const p = document.getElementById('choice-result');
+      p.textContent = msgs[flavor];
+      p.style.opacity = '1';
+      next1.classList.remove('hidden');
+    };
+
+    next1.addEventListener('click', () => goToSlide(1));
+
+    // 2. Typewriter Effect
+    function startTypewriter() {
+      const el = document.getElementById('typewriter');
+      let i = 0;
+      el.textContent = ''; // clear
+      
+      function type() {
+        if (i < letterText.length) {
+          el.textContent += letterText.charAt(i);
+          i++;
+          setTimeout(type, 50); // Typing speed
+        } else {
+          // Show next button when done
+          next2.style.opacity = '1';
+          next2.style.pointerEvents = 'auto';
+        }
+      }
+      type();
+    }
+
+    next2.addEventListener('click', () => goToSlide(2));
+
+    // 3. The Runaway "No" Button
+    // We use mouseover for desktop and a click counter for mobile (since you can't hover on touch)
+    let noHoverCount = 0;
+
+    function moveNoBtn() {
+      const container = document.querySelector('.proposal-actions');
+      const rect = container.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+
+      // Calculate safe boundaries within the container (or slightly outside)
+      // We explicitly check window bounds to keep it on screen
+      const maxX = window.innerWidth - btnRect.width - 20;
+      const maxY = window.innerHeight - btnRect.height - 20;
+      
+      const newX = Math.random() * maxX;
+      const newY = Math.random() * maxY;
+
+      // Make it fixed position so it can fly anywhere on screen
+      noBtn.style.position = 'fixed';
+      noBtn.style.left = newX + 'px';
+      noBtn.style.top = newY + 'px';
+      
+      // Add fun text changes
+      const texts = ["Are you sure?", "Think again!", "Really?", "Catch me!", "Too slow! 😜"];
+      if(noHoverCount < texts.length) {
+        noBtn.textContent = texts[noHoverCount];
+      }
+      noHoverCount++;
+    }
+
+    noBtn.addEventListener('mouseenter', moveNoBtn);
+    noBtn.addEventListener('click', (e) => {
+      e.preventDefault(); // prevent actual click usually
+      moveNoBtn();
+    });
+
+    // 4. The "Yes" Celebration
+    yesBtn.addEventListener('click', () => {
+      // Hide buttons
+      noBtn.style.display = 'none';
+      yesBtn.style.display = 'none';
+      
+      // Show message
+      document.querySelector('h2').textContent = "She said YES! ❤️";
+      document.querySelector('.proposal-actions p').textContent = "";
+      document.getElementById('final-message').classList.remove('hidden');
+
+      // Unmute music and volume up if playing
+      audio.volume = 1.0;
+      if (audio.paused) {
+        audio.play();
+        musicBtn.classList.remove('paused');
+      }
+
+      // Trigger Confetti
+      fireConfetti();
+    });
+
+    // --- Audio Control ---
+    musicBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+        musicBtn.classList.remove('paused');
+      } else {
+        audio.pause();
+        musicBtn.classList.add('paused');
+      }
+    });
+
+    // --- Visuals: Balloons ---
+    function createBalloons() {
+      const layer = document.getElementById('balloons');
+      const colors = ['#ff6fb5', '#ffd166', '#ff2d75', '#8be9fd'];
+      for (let i = 0; i < 15; i++) {
+        const b = document.createElement('div');
+        b.className = 'balloon';
+        b.style.left = Math.random() * 100 + '%';
+        b.style.background = colors[Math.floor(Math.random() * colors.length)];
+        b.style.animationDuration = (15 + Math.random() * 10) + 's';
+        b.style.animationDelay = '-' + (Math.random() * 10) + 's';
+        b.style.opacity = 0.6;
+        layer.appendChild(b);
+      }
+    }
+    createBalloons();
+
+    // --- Visuals: Simple Background Fireworks (Canvas) ---
+    const fCanvas = document.getElementById('fireworks');
+    const fCtx = fCanvas.getContext('2d');
+    let width, height;
+    
+    function resize() {
+      width = fCanvas.width = window.innerWidth;
+      height = fCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const particles = [];
+    
+    function loop() {
+      requestAnimationFrame(loop);
+      fCtx.globalCompositeOperation = 'destination-out';
+      fCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      fCtx.fillRect(0, 0, width, height);
+      fCtx.globalCompositeOperation = 'lighter';
+
+      // Randomly spawn new particle
+      if (Math.random() < 0.05) {
+        particles.push({
+          x: Math.random() * width,
+          y: height + 10,
+          vx: (Math.random() - 0.5) * 2,
+          vy: -(Math.random() * 2 + 3), // slower background rise
+          life: 100,
+          color: `hsl(${Math.random() * 360}, 70%, 50%)`
+        });
+      }
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        fCtx.fillStyle = p.color;
+        fCtx.beginPath();
+        fCtx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        fCtx.fill();
+        if (p.life <= 0) particles.splice(i--, 1);
+      }
+    }
+    loop();
+
+    // --- Visuals: High Performance Confetti for "Yes" ---
+    const cCanvas = document.getElementById('confetti');
+    const cCtx = cCanvas.getContext('2d');
+    let cParticles = [];
+
+    function fireConfetti() {
+      cCanvas.width = window.innerWidth;
+      cCanvas.height = window.innerHeight;
+      
+      const colors = ['#ff2d75', '#ffd166', '#ff6fb5', '#fff'];
+      
+      for(let i=0; i<300; i++) {
+        cParticles.push({
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2,
+          vx: (Math.random() - 0.5) * 20,
+          vy: (Math.random() - 0.5) * 20,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          dRotation: (Math.random() - 0.5) * 10
+        });
+      }
+      
+      animateConfetti();
+    }
+
+    function animateConfetti() {
+      cCtx.clearRect(0,0, cCanvas.width, cCanvas.height);
+      
+      for(let i=0; i < cParticles.length; i++) {
+        const p = cParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.2; // gravity
+        p.vx *= 0.96; // air resistance
+        p.vy *= 0.96;
+        p.rotation += p.dRotation;
+
+        cCtx.save();
+        cCtx.translate(p.x, p.y);
+        cCtx.rotate(p.rotation * Math.PI / 180);
+        cCtx.fillStyle = p.color;
+        cCtx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+        cCtx.restore();
+
+        if (p.y > cCanvas.height) cParticles.splice(i--, 1);
+      }
+
+      if(cParticles.length > 0) requestAnimationFrame(animateConfetti);
+    }
+  </script>
+</body>
+</html>
