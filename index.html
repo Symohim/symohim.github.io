@@ -297,15 +297,15 @@
     }
 
     const choiceResponses = {
-      'Rose Gold': 'Rose Gold it is — soft, warm, and perfectly romantic 🌹✨',
-      'Midnight Violet': 'Midnight Violet — dreamy, poetic, and full of magic 🌌💜',
-      'Scarlet Spark': 'Scarlet Spark — bold, passionate, and impossible to ignore ❤️‍🔥'
+      'Rose Gold': '“Love glows brightest in rose-gold light.” 🌹 — and so do you.',
+      'Midnight Violet': '“In violet skies, hearts speak softly.” 💜 — this one feels like us.',
+      'Scarlet Spark': '“A scarlet spark can light a forever.” ❤️‍🔥 — bold, just like your charm.'
     };
 
     document.querySelectorAll('.choice-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const value = btn.dataset.value;
-        result.textContent = choiceResponses[value] || `Perfect choice: ${value}.`;
+        result.textContent = choiceResponses[value] || `“${value} is beautiful.” ✨`;
         toLetter.hidden = false;
       });
     });
@@ -319,15 +319,60 @@
     });
 
     const noBtn = document.getElementById('no');
+    const deck = document.getElementById('deck');
     let noAttempts = 0;
 
+    function clamp(min, value, max) {
+      return Math.max(min, Math.min(value, max));
+    }
+
     function moveNoButtonRandomly() {
-      const maxLeft = window.innerWidth - noBtn.offsetWidth - 8;
-      const maxTop = window.innerHeight - noBtn.offsetHeight - 8;
+      const rect = deck.getBoundingClientRect();
+      const width = noBtn.offsetWidth;
+      const height = noBtn.offsetHeight;
+      const maxLeft = window.innerWidth - width - 4;
+      const maxTop = window.innerHeight - height - 4;
+
+      const zones = [
+        () => ({
+          left: Math.random() * maxLeft,
+          top: Math.random() * maxTop,
+          z: 40,
+          opacity: 1
+        }),
+        () => ({
+          left: 6 + Math.random() * 34,
+          top: 6 + Math.random() * 28,
+          z: 40,
+          opacity: 1
+        }),
+        () => ({
+          left: window.innerWidth * 0.42 - width + (Math.random() * 80 - 40),
+          top: window.innerHeight * 0.9 - height + (Math.random() * 18 - 9),
+          z: 40,
+          opacity: 1
+        }),
+        () => ({
+          left: Math.random() > 0.5 ? rect.left - width * (0.9 + Math.random() * 0.6) : rect.right + 10 + Math.random() * 80,
+          top: rect.top + Math.random() * (rect.height - height),
+          z: 35,
+          opacity: 1
+        }),
+        () => ({
+          left: rect.left + rect.width * (0.12 + Math.random() * 0.76),
+          top: rect.top + rect.height * (0.12 + Math.random() * 0.76),
+          z: 1,
+          opacity: 0.88
+        })
+      ];
+
+      const picked = zones[Math.floor(Math.random() * zones.length)]();
       noBtn.style.position = 'fixed';
-      noBtn.style.left = `${Math.max(8, Math.random() * maxLeft)}px`;
-      noBtn.style.top = `${Math.max(8, Math.random() * maxTop)}px`;
-      noBtn.style.transform = 'none';
+      noBtn.style.left = `${clamp(2 - width * 0.25, picked.left, maxLeft)}px`;
+      noBtn.style.top = `${clamp(2, picked.top, maxTop)}px`;
+      noBtn.style.zIndex = String(picked.z);
+      noBtn.style.opacity = String(picked.opacity);
+      noBtn.style.transform = 'rotate(' + (Math.random() * 14 - 7).toFixed(1) + 'deg)';
     }
 
     noBtn.addEventListener('mouseenter', () => {
@@ -337,7 +382,7 @@
     noBtn.addEventListener('click', () => {
       noAttempts += 1;
       if (noAttempts < 5) {
-        finalResult.textContent = `Too slow 😜 Catch it first! (${noAttempts}/5)`;
+        finalResult.textContent = `Nope 😜 it escaped again... (${noAttempts}/5)`;
         moveNoButtonRandomly();
         return;
       }
@@ -346,6 +391,9 @@
       noBtn.style.position = 'relative';
       noBtn.style.left = 'auto';
       noBtn.style.top = 'auto';
+      noBtn.style.zIndex = '12';
+      noBtn.style.opacity = '1';
+      noBtn.style.transform = 'none';
     });
 
     function burstHearts() {
