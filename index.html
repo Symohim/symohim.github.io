@@ -317,9 +317,9 @@
       <article class="slide active" data-slide="1">
         <div class="panel">
           <h1>A Tiny Prelude of Love</h1>
-          <p>Before we begin... answer this little multiple-choice riddle 💫</p>
+          <p>Before we begin... answer this little love riddle 💫</p>
           <p class="question">Choose the mood for our little love story tonight ✨</p>
-          <p style="opacity:0.86;margin-top:0.2rem;">Pick one aesthetic card to unlock your letter.</p>
+          <p style="opacity:0.86;margin-top:0.2rem;">Pick a card to recieve a gift</p>
           <div class="choices" id="choices">
             <button class="choice-btn" data-value="Rose Gold">
               <span class="choice-letter">Choice A</span>
@@ -344,7 +344,7 @@
 
       <article class="slide" data-slide="2">
         <div class="panel letter">
-          <h3>My Dearest,</h3>
+          <h3 id="letter-heading">My Dearest,</h3>
           <p class="type-line" data-text="In a world full of noise, your laugh is the melody that finds me."></p>
           <p class="type-line" data-text="Your kindness paints gentle light on my ordinary days, making each little moment feel like art."></p>
           <p class="type-line" data-text="If love is a gallery, you are the masterpiece I could admire forever—vivid, rare, and endlessly inspiring."></p>
@@ -377,6 +377,48 @@
     const typeLines = [...document.querySelectorAll('.type-line')];
     let typingToken = 0;
 
+    const letterVariants = {
+      'Rose Gold': {
+        heading: 'My Rose-Gold Muse,',
+        lines: [
+          'In your glow, even ordinary evenings feel dipped in candlelight and wonder.',
+          'You turn gentle moments into keepsakes, and silence into something warm.',
+          'If tenderness had a color, it would be this soft blush that reminds me of you.',
+          'Forever admiring you, — Your devoted heart.'
+        ]
+      },
+      'Midnight Violet': {
+        heading: 'My Midnight Violet,',
+        lines: [
+          'You are the calm beneath moonlit skies, the poetry inside every pause.',
+          'When life gets loud, your presence feels like a beautiful, quiet symphony.',
+          'I would choose your soul in every universe, in every shade of night.',
+          'Always yours, — The one who writes your name in stars.'
+        ]
+      },
+      'Scarlet Spark': {
+        heading: 'My Scarlet Flame,',
+        lines: [
+          'You arrived like lightning—bold, radiant, and impossible to forget.',
+          'With you, every heartbeat feels brighter, faster, and fearlessly alive.',
+          'You are my favorite kind of chaos: passionate, vivid, and breathtakingly real.',
+          'With endless fire, — The heart that chooses you.'
+        ]
+      }
+    };
+
+    let selectedChoice = 'Rose Gold';
+
+    function applyLetterVariant(choice) {
+      const variant = letterVariants[choice] || letterVariants['Rose Gold'];
+      const heading = document.getElementById('letter-heading');
+      heading.textContent = variant.heading;
+      typeLines.forEach((line, index) => {
+        line.dataset.text = variant.lines[index] || '';
+        line.textContent = '';
+      });
+    }
+
     async function runTypewriter() {
       typingToken += 1;
       const token = typingToken;
@@ -402,18 +444,22 @@
     }
 
     const choiceResponses = {
-      'Rose Gold': '“Love glows brightest in rose-gold light.” 🌹 — and so do you.',
-      'Midnight Violet': '“In violet skies, hearts speak softly.” 💜 — this one feels like us.',
-      'Scarlet Spark': '“A scarlet spark can light a forever.” ❤️‍🔥 — bold, just like your charm.'
+      'Rose Gold': 'A rose-gold gift waits in your letter 🌹✨',
+      'Midnight Violet': 'A moonlit violet gift waits in your letter 🌙💜',
+      'Scarlet Spark': 'A scarlet spark gift waits in your letter ❤️‍🔥'
     };
 
     document.querySelectorAll('.choice-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const value = btn.dataset.value;
-        result.textContent = choiceResponses[value] || `“${value} is beautiful.” ✨`;
+        selectedChoice = value;
+        applyLetterVariant(selectedChoice);
+        result.textContent = choiceResponses[value] || `A gift awaits in your letter ✨`;
         toLetter.hidden = false;
       });
     });
+
+    applyLetterVariant(selectedChoice);
 
     toLetter.addEventListener('click', () => showSlide(2));
     toProposal.addEventListener('click', () => showSlide(3));
