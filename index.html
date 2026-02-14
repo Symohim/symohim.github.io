@@ -126,8 +126,9 @@
 
     .choices {
       display: grid;
-      gap: 0.7rem;
-      margin-top: 0.9rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
     }
 
     button {
@@ -140,15 +141,45 @@
     }
 
     .choice-btn {
+      border-radius: 16px;
+      text-align: left;
+      padding: 0.88rem 0.9rem;
+      min-height: 106px;
       color: #fff;
-      background: linear-gradient(135deg, #ff2d75, #ff6fb5);
-      box-shadow: 0 8px 16px rgba(255, 45, 117, 0.3);
+      background: linear-gradient(165deg, rgba(255, 45, 117, 0.9), rgba(154, 89, 255, 0.85));
+      border: 1px solid rgba(255, 255, 255, 0.33);
+      box-shadow: 0 10px 24px rgba(255, 45, 117, 0.3), inset 0 0 0 1px rgba(255,255,255,0.12);
+      display: grid;
+      gap: 0.3rem;
+      align-content: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .choice-letter {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #ffe8a3;
+    }
+
+    .choice-title {
+      font-weight: 700;
+      font-size: 1rem;
+      line-height: 1.2;
+    }
+
+    .choice-note {
+      opacity: 0.9;
+      font-size: 0.84rem;
     }
 
     .choice-btn:hover,
     .next-btn:hover,
     .yes-btn:hover {
       transform: translateY(-2px) scale(1.01);
+    }
+
+    .choice-btn:hover {
+      box-shadow: 0 15px 28px rgba(255, 45, 117, 0.38), inset 0 0 0 1px rgba(255,255,255,0.2);
     }
 
     .next-btn,
@@ -266,6 +297,15 @@
       opacity: 0.8;
       margin-top: 0.8rem;
     }
+
+    @media (max-width: 760px) {
+      .choices {
+        grid-template-columns: 1fr;
+      }
+      .choice-btn {
+        min-height: 88px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -278,11 +318,24 @@
         <div class="panel">
           <h1>A Tiny Prelude of Love</h1>
           <p>Before we begin... answer this little multiple-choice riddle 💫</p>
-          <p class="question">Which color should tonight's romance glow in?</p>
+          <p class="question">Choose the mood for our little love story tonight ✨</p>
+          <p style="opacity:0.86;margin-top:0.2rem;">Pick one aesthetic card to unlock your letter.</p>
           <div class="choices" id="choices">
-            <button class="choice-btn" data-value="Rose Gold">A) Rose Gold Dream</button>
-            <button class="choice-btn" data-value="Midnight Violet">B) Midnight Violet Glow</button>
-            <button class="choice-btn" data-value="Scarlet Spark">C) Scarlet Spark</button>
+            <button class="choice-btn" data-value="Rose Gold">
+              <span class="choice-letter">Choice A</span>
+              <span class="choice-title">Rose Gold Dream</span>
+              <span class="choice-note">Soft candlelight & warm blush skies</span>
+            </button>
+            <button class="choice-btn" data-value="Midnight Violet">
+              <span class="choice-letter">Choice B</span>
+              <span class="choice-title">Midnight Violet Glow</span>
+              <span class="choice-note">Moonlit romance with poetic calm</span>
+            </button>
+            <button class="choice-btn" data-value="Scarlet Spark">
+              <span class="choice-letter">Choice C</span>
+              <span class="choice-title">Scarlet Spark</span>
+              <span class="choice-note">Bold passion with electric charm</span>
+            </button>
           </div>
           <p class="result" id="result"></p>
           <button class="next-btn" id="to-letter" hidden>Open the letter ✉️</button>
